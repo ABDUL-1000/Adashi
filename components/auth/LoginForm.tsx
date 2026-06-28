@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,12 @@ import { useLogin } from "@/hooks/auth/useLogin";
 import { notify } from "@/lib/notify";
 import { getApiErrorMessage } from "@/services/api";
 
-export function LoginForm() {
+function LoginFields() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useLogin();
   const [error, setError] = useState<string | null>(null);
+  const redirect = searchParams.get("redirect") || searchParams.get("next") || "/dashboard";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +29,7 @@ export function LoginForm() {
         password: String(form.get("password")),
       });
       notify.success("Welcome back to Adashi.");
-      router.replace("/member/dashboard");
+      router.replace(redirect);
     } catch (err) {
       const message = getApiErrorMessage(err);
       setError(message);
@@ -55,10 +57,21 @@ export function LoginForm() {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         No account?{" "}
-        <Link href="/register" className="font-medium text-primary">
+        <Link
+          href={`/register?redirect=${encodeURIComponent(redirect)}`}
+          className="font-medium text-primary"
+        >
           Register
         </Link>
       </p>
     </form>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted-foreground">Loading...</p>}>
+      <LoginFields />
+    </Suspense>
   );
 }

@@ -3,6 +3,11 @@ export const routes = {
   login: "/login",
   register: "/register",
   verifyOtp: "/verify-otp",
-  memberDashboard: "/member/dashboard",
-  organizerDashboard: "/organizer/dashboard",
+  dashboard: "/dashboard",
+  groups: "/groups",
+  createGroup: "/groups/create",
+  payments: "/payments",
+  payouts: "/payouts",
+  wallet: "/wallet",
+  settings: "/settings",
 };

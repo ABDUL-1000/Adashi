@@ -58,7 +58,7 @@ export function CreateGroupForm() {
 
       setSuccess(response.message);
       notify.success(response.message || "Group created successfully.");
-      router.push(group?.id ? `/organizer/groups/${group.id}` : "/organizer/groups");
+      router.push(group?.id ? `/groups/${group.id}` : "/groups");
     } catch (err) {
       const message = getErrorMessage(err);
       setError(message);

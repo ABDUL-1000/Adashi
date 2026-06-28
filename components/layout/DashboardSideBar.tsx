@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Bell,
   CreditCard,
   LayoutDashboard,
   LogOut,
+  PlusCircle,
   Settings,
   Users,
   Wallet,
@@ -19,26 +19,25 @@ import { useLogout } from "@/hooks/auth/useLogout";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, paths: { member: "/member/dashboard", organizer: "/organizer/dashboard" } },
-  { label: "Groups", icon: Users, paths: { member: "/member/groups", organizer: "/organizer/groups" } },
-  { label: "Payments", icon: CreditCard, paths: { member: "/member/payments", organizer: "/organizer/payments" } },
-  { label: "Payouts", icon: WalletCards, paths: { member: "/member/payouts", organizer: "/organizer/payouts" } },
-  { label: "Wallet", icon: Wallet, paths: { member: "/member/wallet", organizer: "/member/wallet" } },
-  { label: "Reminders", icon: Bell, paths: { member: "/organizer/reminders", organizer: "/organizer/reminders" } },
-  { label: "Settings", icon: Settings, paths: { member: "/member/settings", organizer: "/organizer/settings" } },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Groups", icon: Users, href: "/groups" },
+  { label: "Create Group", icon: PlusCircle, href: "/groups/create" },
+  { label: "Payments", icon: CreditCard, href: "/payments" },
+  { label: "Payouts", icon: WalletCards, href: "/payouts" },
+  { label: "Wallet", icon: Wallet, href: "/wallet" },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const logout = useLogout();
-  const role = pathname.startsWith("/organizer") ? "organizer" : "member";
 
   return (
     <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-border-soft bg-white px-4 py-5 lg:flex lg:flex-col">
-      <BrandLogo href={`/${role}/dashboard`} />
+      <BrandLogo href="/dashboard" />
       <nav className="mt-8 grid gap-1.5">
         {navItems.map((item) => {
-          const href = item.paths[role];
+          const href = item.href;
           const Icon = item.icon;
           const active = pathname === href || pathname.startsWith(`${href}/`);
 

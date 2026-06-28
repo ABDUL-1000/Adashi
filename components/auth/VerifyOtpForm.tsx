@@ -16,6 +16,7 @@ function VerifyOtpFields() {
   const verifyOtp = useVerifyOtp();
   const [error, setError] = useState<string | null>(null);
   const email = searchParams.get("email") ?? "";
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +29,7 @@ function VerifyOtpFields() {
         otp: String(form.get("otp")),
       });
       notify.success("OTP verified successfully.");
-      router.replace("/member/dashboard");
+      router.replace(redirect);
     } catch (err) {
       const message = getApiErrorMessage(err);
       setError(message);

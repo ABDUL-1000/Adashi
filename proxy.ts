@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { AUTH_TOKEN_KEY } from "@/lib/token";
 
-const protectedPrefixes = ["/organizer", "/member", "/settings", "/payment"];
+const protectedPrefixes = [
+  "/dashboard",
+  "/groups",
+  "/settings",
+  "/payments",
+  "/payouts",
+  "/wallet",
+];
 const authRoutes = ["/login", "/register", "/verify-otp", "/forgot-password"];
 
 export function proxy(request: NextRequest) {
@@ -14,12 +21,12 @@ export function proxy(request: NextRequest) {
 
   if (!token && isProtected) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
+    loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   if (token && authRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/member/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

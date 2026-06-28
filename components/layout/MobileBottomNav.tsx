@@ -13,22 +13,21 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { label: "Home", icon: LayoutDashboard, paths: { member: "/member/dashboard", organizer: "/organizer/dashboard" } },
-  { label: "Groups", icon: Users, paths: { member: "/member/groups", organizer: "/organizer/groups" } },
-  { label: "Create", icon: PlusCircle, paths: { member: "/member/groups/create", organizer: "/organizer/groups/create" } },
-  { label: "Pay", icon: CreditCard, paths: { member: "/member/payments", organizer: "/organizer/payments" } },
-  { label: "Wallet", icon: Wallet, paths: { member: "/member/wallet", organizer: "/member/wallet" } },
+  { label: "Home", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Groups", icon: Users, href: "/groups" },
+  { label: "Create", icon: PlusCircle, href: "/groups/create" },
+  { label: "Pay", icon: CreditCard, href: "/payments" },
+  { label: "Wallet", icon: Wallet, href: "/wallet" },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const role = pathname.startsWith("/organizer") ? "organizer" : "member";
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl border-t border-border-soft bg-white px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-18px_45px_rgba(32,33,39,0.08)] lg:hidden">
       <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
         {items.map((item) => {
-          const href = item.paths[role];
+          const href = item.href;
           const Icon = item.icon;
           const active = pathname === href || pathname.startsWith(`${href}/`);
 

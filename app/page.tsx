@@ -30,7 +30,7 @@ export default function Home() {
               Adashi
             </h1>
             <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-              Create trusted contribution groups, fund wallets, automate reminders, and track every payout from a polished dashboard built for organizers and members.
+              Create trusted contribution groups, fund wallets, automate reminders, and track every payout from one polished dashboard.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">

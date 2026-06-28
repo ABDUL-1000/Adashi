@@ -20,7 +20,6 @@ export type ValidateInvitePayload = {
 
 export type JoinGroupRequest = {
   code: string;
-  payoutPosition: number;
 };
 
 export type JoinGroupPayload = {

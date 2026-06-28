@@ -13,7 +13,7 @@ export const inviteService = {
   },
   joinGroup: async (payload: JoinGroupRequest) => {
     return api.post<JoinGroupResponse, JoinGroupResponse>(
-      "/invites/join",
+      "/groups/join",
       payload
     );
   },

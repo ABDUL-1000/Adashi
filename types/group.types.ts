@@ -62,6 +62,21 @@ export type CreateGroupRequest = {
   startDate: string;
 };
 
+export type UpdateGroupPayload = {
+  name?: string;
+  contributionAmount?: number;
+  slots?: number;
+  frequency?: GroupFrequency;
+  startDate?: string;
+};
+
+export type ReorderPositionsPayload = {
+  positions: Array<{
+    memberId: string;
+    position: number;
+  }>;
+};
+
 export type CreateGroupPayload = {
   group: Group;
 };
@@ -102,3 +117,7 @@ export type GroupDetails = {
 export type GroupsResponse = ApiResponse<Group[]>;
 export type GroupDetailsResponse = ApiResponse<GroupDetails>;
 export type CreateGroupResponse = ApiResponse<CreateGroupPayload | Group>;
+export type UpdateGroupResponse = ApiResponse<Group>;
+export type ReorderPositionsResponse = ApiResponse<GroupDetails | Group>;
+export type DeleteGroupResponse = ApiResponse<undefined>;
+export type RemoveGroupMemberResponse = ApiResponse<undefined>;

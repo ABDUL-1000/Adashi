@@ -10,8 +10,7 @@ import { InlineLoader } from "@/components/shared/InlineLoader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useJoinGroup } from "@/hooks/members/useJoinGroup";
+import { useJoinGroup } from "@/hooks/invites/useJoinGroup";
 import { useValidateInvite } from "@/hooks/invites/useValidateInvite";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDate } from "@/lib/formatDate";
@@ -34,17 +33,14 @@ export default function JoinGroupPage() {
     setError(null);
 
     if (!isAuthenticated) {
-      router.push(`/login?next=${encodeURIComponent(`/join/${params.inviteCode}`)}`);
+      router.push(`/login?redirect=${encodeURIComponent(`/join/${params.inviteCode}`)}`);
       return;
     }
 
-    const form = new FormData(event.currentTarget);
-    const payoutPosition = Number(form.get("payoutPosition"));
 
     try {
       const response = await joinGroup.mutateAsync({
         code: params.inviteCode,
-        payoutPosition,
       });
       setMessage(response.message);
       notify.success(response.message || "Joined group successfully.");
@@ -54,7 +50,7 @@ export default function JoinGroupPage() {
           : response.data && "group" in response.data
             ? response.data.group?.id
             : undefined;
-      router.push(groupId ? `/member/groups/${groupId}` : "/member/dashboard");
+      router.push(groupId ? `/groups/${groupId}` : "/groups");
     } catch (err) {
       const nextError = getErrorMessage(err);
       setError(nextError);
@@ -105,20 +101,7 @@ export default function JoinGroupPage() {
                   </div>
                   {isAuthenticated ? (
                     <form onSubmit={handleJoin} className="grid gap-5">
-                      <div className="grid gap-2">
-                        <label className="text-sm font-medium" htmlFor="payoutPosition">
-                          Preferred payout position
-                        </label>
-                        <Input
-                          id="payoutPosition"
-                          name="payoutPosition"
-                          type="number"
-                          min="1"
-                          max={invite.group.slots}
-                          defaultValue={Math.min(invite.group._count.members + 1, invite.group.slots)}
-                          required
-                        />
-                      </div>
+                  
                       <Button type="submit" disabled={joinGroup.isPending}>
                         {joinGroup.isPending ? <InlineLoader label="Joining" /> : "Join group"}
                       </Button>
@@ -130,12 +113,14 @@ export default function JoinGroupPage() {
                       </p>
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <Button asChild>
-                          <Link href={`/login?next=${encodeURIComponent(`/join/${params.inviteCode}`)}`}>
+                          <Link href={`/login?redirect=${encodeURIComponent(`/join/${params.inviteCode}`)}`}>
                             Login to join
                           </Link>
                         </Button>
                         <Button asChild variant="outline">
-                          <Link href="/register">Register</Link>
+                          <Link href={`/register?redirect=${encodeURIComponent(`/join/${params.inviteCode}`)}`}>
+                            Register to join
+                          </Link>
                         </Button>
                       </div>
                     </div>

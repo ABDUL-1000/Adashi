@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,13 @@ import { useRegister } from "@/hooks/auth/useRegister";
 import { notify } from "@/lib/notify";
 import { getApiErrorMessage } from "@/services/api";
 
-export function RegisterForm() {
+function RegisterFields() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const register = useRegister();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +35,9 @@ export function RegisterForm() {
       });
       setMessage(response.message);
       notify.success(response.message || "Account created. Check your OTP.");
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+      router.push(
+        `/verify-otp?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`
+      );
     } catch (err) {
       const message = getApiErrorMessage(err);
       setError(message);
@@ -74,10 +78,21 @@ export function RegisterForm() {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-primary">
+        <Link
+          href={`/login?redirect=${encodeURIComponent(redirect)}`}
+          className="font-medium text-primary"
+        >
           Login
         </Link>
       </p>
     </form>
+  );
+}
+
+export function RegisterForm() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted-foreground">Loading...</p>}>
+      <RegisterFields />
+    </Suspense>
   );
 }

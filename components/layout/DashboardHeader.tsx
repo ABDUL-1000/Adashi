@@ -33,7 +33,7 @@ export function DashboardHeader() {
     <header className="sticky top-0 z-30 border-b border-border-soft bg-page-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <div className="lg:hidden">
-          <BrandLogo href={pathname.startsWith("/organizer") ? "/organizer/dashboard" : "/member/dashboard"} />
+          <BrandLogo href="/dashboard" />
         </div>
         <div className="hidden min-w-0 lg:block">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary">
