@@ -2,6 +2,7 @@ import api from "./api";
 import type {
   LoginRequest,
   LoginResponse,
+  ProfileResponse,
   RegisterRequest,
   RegisterResponse,
   VerifyOtpRequest,
@@ -10,18 +11,18 @@ import type {
 
 export const authService = {
   register: async (payload: RegisterRequest) => {
-    const { data } = await api.post<RegisterResponse>("/auth/register", payload);
-    return data;
+    return api.post<RegisterResponse, RegisterResponse>("/auth/register", payload);
   },
   verifyOtp: async (payload: VerifyOtpRequest) => {
-    const { data } = await api.post<VerifyOtpResponse>(
+    return api.post<VerifyOtpResponse, VerifyOtpResponse>(
       "/auth/verify-otp",
       payload
     );
-    return data;
   },
   login: async (payload: LoginRequest) => {
-    const { data } = await api.post<LoginResponse>("/auth/login", payload);
-    return data;
+    return api.post<LoginResponse, LoginResponse>("/auth/login", payload);
+  },
+  profile: async () => {
+    return api.get<ProfileResponse, ProfileResponse>("/auth/profile");
   },
 };

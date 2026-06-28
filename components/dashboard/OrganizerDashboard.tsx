@@ -9,10 +9,12 @@ import { PageSkeleton } from "@/components/shared/PageSkeleton";
 import { StateCard } from "@/components/shared/StateCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useProfile } from "@/hooks/auth/useProfile";
 import { useGetGroups } from "@/hooks/groups/useGetGroups";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export function OrganizerDashboard() {
+  const profileQuery = useProfile();
   const groupsQuery = useGetGroups();
   const groups = groupsQuery.data?.data ?? [];
   const activeGroups = groups.filter((group) => group.status === "ACTIVE").length;
@@ -21,7 +23,7 @@ export function OrganizerDashboard() {
     0
   );
 
-  if (groupsQuery.isLoading) {
+  if (groupsQuery.isLoading || profileQuery.isLoading) {
     return <PageSkeleton />;
   }
 
@@ -29,7 +31,7 @@ export function OrganizerDashboard() {
     <div className="grid gap-6">
       <PageHeader
         title="Organizer dashboard"
-        description="Manage contribution groups and automatic reminder settings."
+        description={`Welcome back${profileQuery.data?.data.name ? `, ${profileQuery.data.data.name}` : ""}. Manage contribution groups and automatic reminder settings.`}
         action={
           <Button asChild>
             <Link href="/organizer/groups/create">

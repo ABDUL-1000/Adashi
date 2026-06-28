@@ -9,11 +9,13 @@ import { PageSkeleton } from "@/components/shared/PageSkeleton";
 import { StateCard } from "@/components/shared/StateCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useProfile } from "@/hooks/auth/useProfile";
 import { useGetGroups } from "@/hooks/groups/useGetGroups";
 import { useGetWallet } from "@/hooks/wallet/useGetWallet";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export function MemberDashboard() {
+  const profileQuery = useProfile();
   const groupsQuery = useGetGroups();
   const walletQuery = useGetWallet();
   const groups = groupsQuery.data?.data ?? [];
@@ -21,7 +23,7 @@ export function MemberDashboard() {
   const nextContribution = groups[0]?.contributionAmount;
   const hasLowBalance = Boolean(nextContribution && balance < Number(nextContribution));
 
-  if (groupsQuery.isLoading || walletQuery.isLoading) {
+  if (groupsQuery.isLoading || walletQuery.isLoading || profileQuery.isLoading) {
     return <PageSkeleton />;
   }
 
@@ -29,7 +31,7 @@ export function MemberDashboard() {
     <div className="grid gap-6">
       <PageHeader
         title="Member dashboard"
-        description="Track your groups, wallet, payments, and payout position."
+        description={`Welcome back${profileQuery.data?.data.name ? `, ${profileQuery.data.data.name}` : ""}. Track your groups, wallet, payments, and payout position.`}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <StateCard title="Wallet balance" value={formatCurrency(walletQuery.data?.data.balance)} caption="Fund your wallet before due dates" icon={Wallet} />

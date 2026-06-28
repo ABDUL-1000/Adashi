@@ -1,16 +1,27 @@
 import Link from "next/link";
 import { CalendarDays, Users } from "lucide-react";
 
+import { InviteLinkBox } from "@/components/invites/InviteLinkBox";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDate } from "@/lib/formatDate";
 import type { Group } from "@/types/group.types";
 
-export function GroupCard({ group, href }: { group: Group; href: string }) {
+export function GroupCard({
+  group,
+  href,
+  showInviteLink = false,
+}: {
+  group: Group;
+  href: string;
+  showInviteLink?: boolean;
+}) {
+  const inviteCode = group.invites?.[0]?.code;
+
   return (
-    <Link href={href} className="block h-full">
-      <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_24px_65px_rgba(146,68,212,0.12)]">
+    <Card className="h-full transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_24px_65px_rgba(146,68,212,0.12)]">
+      <Link href={href} className="block">
         <CardHeader className="gap-3">
           <div className="flex items-start justify-between gap-3">
             <CardTitle className="text-lg font-medium">{group.name}</CardTitle>
@@ -33,7 +44,12 @@ export function GroupCard({ group, href }: { group: Group; href: string }) {
             </div>
           </div>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+      {showInviteLink && inviteCode ? (
+        <CardContent className="pt-0">
+          <InviteLinkBox code={inviteCode} />
+        </CardContent>
+      ) : null}
+    </Card>
   );
 }

@@ -1,10 +1,11 @@
 import axios, { AxiosError } from "axios";
 
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { getToken } from "@/lib/token";
 import { useAuthStore } from "@/store/authStore";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,7 +22,7 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => response.data,
   (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
       useAuthStore.getState().logout();
@@ -33,11 +34,7 @@ api.interceptors.response.use(
 );
 
 export function getApiErrorMessage(error: unknown) {
-  if (axios.isAxiosError<{ message?: string }>(error)) {
-    return error.response?.data?.message ?? error.message;
-  }
-
-  return "Something went wrong. Please try again.";
+  return getErrorMessage(error);
 }
 
 export default api;

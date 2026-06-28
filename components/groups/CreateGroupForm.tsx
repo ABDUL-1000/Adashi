@@ -3,26 +3,19 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+import { InviteLinkBox } from "@/components/invites/InviteLinkBox";
 import { FormSection } from "@/components/shared/FormSection";
 import { InlineLoader } from "@/components/shared/InlineLoader";
-import { InviteLinkDialog } from "@/components/shared/InviteLinkDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { useCreateGroup } from "@/hooks/groups/useCreateGroup";
 import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
-import { getApiErrorMessage } from "@/services/api";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import type { Group, PayoutMethod } from "@/types/group.types";
 
-function parseReminderDays(value: string) {
-  return value
-    .split(",")
-    .map((item) => Number(item.trim()))
-    .filter((item) => !Number.isNaN(item));
-}
-
-function getCreatedGroup(data: Group | { group?: Group; inviteLink?: string }) {
+function getCreatedGroup(data: Group | { group?: Group }) {
   return "group" in data && data.group ? data.group : (data as Group);
 }
 
@@ -31,39 +24,33 @@ export function CreateGroupForm() {
   const createGroup = useCreateGroup();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<PayoutMethod>("ORGANIZER_SELECTED");
-  const [inviteOpen, setInviteOpen] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSuccess(null);
-    setInviteLink(null);
+    setInviteCode(null);
 
     const form = new FormData(event.currentTarget);
 
     try {
+      // TODO: Send payoutMethod, reminderDaysBeforeDueDate, and autoDeductionEnabled
+      // when the backend adds support for those fields.
       const response = await createGroup.mutateAsync({
         name: String(form.get("name")),
         contributionAmount: Number(form.get("contributionAmount")),
         slots: Number(form.get("slots")),
         frequency: String(form.get("frequency")) as "WEEKLY" | "MONTHLY",
-        startDate: String(form.get("startDate")),
-        payoutMethod: String(form.get("payoutMethod")) as PayoutMethod,
-        reminderDaysBeforeDueDate: parseReminderDays(
-          String(form.get("reminderDaysBeforeDueDate"))
-        ),
-        autoDeductionEnabled: form.get("autoDeductionEnabled") === "on",
+        startDate: new Date(String(form.get("startDate"))).toISOString(),
       });
 
-      const returnedInviteLink =
-        "inviteLink" in response.data ? response.data.inviteLink : undefined;
       const group = getCreatedGroup(response.data);
+      const returnedInviteCode = group?.invites?.[0]?.code;
 
-      if (returnedInviteLink) {
-        setInviteLink(returnedInviteLink);
-        setInviteOpen(true);
+      if (returnedInviteCode) {
+        setInviteCode(returnedInviteCode);
         setSuccess("Group created. Share the invite link with members.");
         notify.success("Group created. Share the invite link with members.");
         return;
@@ -71,9 +58,9 @@ export function CreateGroupForm() {
 
       setSuccess(response.message);
       notify.success(response.message || "Group created successfully.");
-      router.push(`/organizer/groups/${group.id}`);
+      router.push(group?.id ? `/organizer/groups/${group.id}` : "/organizer/groups");
     } catch (err) {
-      const message = getApiErrorMessage(err);
+      const message = getErrorMessage(err);
       setError(message);
       notify.error(message);
     }
@@ -185,22 +172,13 @@ export function CreateGroupForm() {
         </label>
       </FormSection>
 
-      {inviteLink ? (
-        <button
-          type="button"
-          onClick={() => setInviteOpen(true)}
-          className="rounded-2xl border border-primary/25 bg-primary-soft p-4 text-left text-sm text-primary"
-        >
-          Group created. Open invite link.
-        </button>
-      ) : null}
+      {inviteCode ? <InviteLinkBox code={inviteCode} /> : null}
       {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button type="submit" disabled={createGroup.isPending} size="lg">
         {createGroup.isPending ? <InlineLoader label="Creating group" /> : "Create group"}
       </Button>
     </form>
-    <InviteLinkDialog inviteLink={inviteLink} open={inviteOpen} onOpenChange={setInviteOpen} />
     </>
   );
 }

@@ -8,15 +8,12 @@ import type {
 
 export const groupService = {
   createGroup: async (payload: CreateGroupRequest) => {
-    const { data } = await api.post<CreateGroupResponse>("/groups", payload);
-    return data;
+    return api.post<CreateGroupResponse, CreateGroupResponse>("/groups", payload);
   },
   getGroups: async () => {
-    const { data } = await api.get<GroupsResponse>("/groups");
-    return data;
+    return api.get<GroupsResponse, GroupsResponse>("/groups");
   },
   getGroupDetails: async (groupId: string) => {
-    const { data } = await api.get<GroupDetailsResponse>(`/groups/${groupId}`);
-    return data;
+    return api.get<GroupDetailsResponse, GroupDetailsResponse>(`/groups/${groupId}`);
   },
 };

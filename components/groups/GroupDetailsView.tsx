@@ -1,14 +1,27 @@
 "use client";
 
+import { FormEvent, useState } from "react";
 import { useParams } from "next/navigation";
-import { CalendarDays, CreditCard, Users, Wallet } from "lucide-react";
+import { CalendarDays, CreditCard, Send, Users, Wallet } from "lucide-react";
 
+import { InviteLinkBox } from "@/components/invites/InviteLinkBox";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { InlineLoader } from "@/components/shared/InlineLoader";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { PageSkeleton } from "@/components/shared/PageSkeleton";
 import { StateCard } from "@/components/shared/StateCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -18,16 +31,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGetGroupDetails } from "@/hooks/groups/useGetGroupDetails";
+import { useManualPayout } from "@/hooks/payouts/useManualPayout";
+import { useTriggerReminder } from "@/hooks/reminders/useTriggerReminder";
 import { useGetWallet } from "@/hooks/wallet/useGetWallet";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDate } from "@/lib/formatDate";
-import { getApiErrorMessage } from "@/services/api";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { notify } from "@/lib/notify";
 
 export function GroupDetailsView() {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
   const groupQuery = useGetGroupDetails(groupId);
   const walletQuery = useGetWallet();
+  const triggerReminder = useTriggerReminder();
 
   if (groupQuery.isLoading) {
     return <PageSkeleton />;
@@ -37,7 +54,7 @@ export function GroupDetailsView() {
     return (
       <EmptyState
         title="Could not load group"
-        description={getApiErrorMessage(groupQuery.error)}
+        description={getErrorMessage(groupQuery.error)}
       />
     );
   }
@@ -48,16 +65,47 @@ export function GroupDetailsView() {
   }
 
   const group = details.group;
+  // TODO: Backend should include invites in single group details response.
+  const inviteCode = group.invites?.[0]?.code;
   const walletBalance = Number(walletQuery.data?.data.balance ?? 0);
   const contributionAmount = Number(group.contributionAmount);
   const hasLowBalance = walletQuery.isSuccess && walletBalance < contributionAmount;
+
+  async function handleTriggerReminder() {
+    try {
+      const response = await triggerReminder.mutateAsync();
+      notify.success(response.message || "Reminder triggered successfully.");
+    } catch (error) {
+      notify.error(getErrorMessage(error));
+    }
+  }
 
   return (
     <div className="grid gap-6">
       <PageHeader
         title={group.name}
         description={`Organized by ${group.organizer.name}`}
-        action={<StatusBadge status={group.status} />}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge status={group.status} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTriggerReminder}
+              disabled={triggerReminder.isPending}
+            >
+              {triggerReminder.isPending ? <InlineLoader label="Triggering" /> : "Trigger Reminder"}
+            </Button>
+            {details.currentCycle ? (
+              <ManualPayoutDialog
+                groupId={group.id}
+                cycleId={details.currentCycle.id}
+                members={group.members}
+                defaultAmount={contributionAmount}
+              />
+            ) : null}
+          </div>
+        }
       />
       <div className="grid gap-4 md:grid-cols-4">
         <StateCard title="Contribution" value={formatCurrency(group.contributionAmount)} icon={Wallet} />
@@ -65,6 +113,8 @@ export function GroupDetailsView() {
         <StateCard title="Start date" value={formatDate(group.startDate)} icon={CalendarDays} />
         <StateCard title="Payout position" value={details.userContext?.payoutPosition ?? "Not joined"} icon={Users} />
       </div>
+
+      {inviteCode ? <InviteLinkBox code={inviteCode} /> : null}
 
       <Card className="bg-[linear-gradient(135deg,#ffffff_0%,#ffffff_55%,#cfacec3d_100%)]">
         <CardHeader>
@@ -147,8 +197,8 @@ export function GroupDetailsView() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <LedgerCard title="Payments" items={details.ledger.payments} icon={<CreditCard className="size-5" />} />
-        <LedgerCard title="Payouts" items={details.ledger.payouts} icon={<Wallet className="size-5" />} />
+        <LedgerCard title="Payments" items={details.ledger.payments ?? []} icon={<CreditCard className="size-5" />} />
+        <LedgerCard title="Payouts" items={details.ledger.payouts ?? []} icon={<Wallet className="size-5" />} />
       </div>
     </div>
   );
@@ -160,9 +210,11 @@ function LedgerCard({
   icon,
 }: {
   title: string;
-  items: Array<{ id: string; amount?: string; status?: string; createdAt?: string }>;
+  items: Array<Record<string, unknown>>;
   icon?: React.ReactNode;
 }) {
+  const visibleItems = items.filter((item) => Object.keys(item).length > 0);
+
   return (
     <Card>
       <CardHeader>
@@ -172,7 +224,7 @@ function LedgerCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {items.length ? (
+        {visibleItems.length ? (
           <div className="overflow-hidden rounded-2xl border border-border-soft">
           <Table>
             <TableHeader>
@@ -183,11 +235,11 @@ function LedgerCard({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{formatCurrency(item.amount)}</TableCell>
-                  <TableCell><StatusBadge status={item.status ?? "PENDING"} /></TableCell>
-                  <TableCell>{formatDate(item.createdAt)}</TableCell>
+              {visibleItems.map((item, index) => (
+                <TableRow key={String(item.id ?? index)}>
+                  <TableCell>{formatCurrency(getString(item.amount))}</TableCell>
+                  <TableCell><StatusBadge status={getString(item.status) || "PENDING"} /></TableCell>
+                  <TableCell>{formatDate(getString(item.createdAt) || getString(item.paidAt))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -199,4 +251,95 @@ function LedgerCard({
       </CardContent>
     </Card>
   );
+}
+
+function ManualPayoutDialog({
+  groupId,
+  cycleId,
+  members,
+  defaultAmount,
+}: {
+  groupId: string;
+  cycleId: string;
+  members: Array<{ userId: string; user: { name: string }; payoutPosition: number }>;
+  defaultAmount: number;
+}) {
+  const manualPayout = useManualPayout();
+  const [open, setOpen] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const response = await manualPayout.mutateAsync({
+        groupId,
+        cycleId,
+        receiverUserId: String(form.get("receiverUserId")),
+        amount: Number(form.get("amount")),
+      });
+      notify.success(response.message || "Manual payout submitted.");
+      setOpen(false);
+    } catch (error) {
+      notify.error(getErrorMessage(error));
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button">
+          <Send className="size-4" />
+          Manual Payout
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Manual payout</DialogTitle>
+          <DialogDescription>
+            Select a receiver and amount for the current contribution cycle.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <div className="grid gap-2">
+            <label className="text-sm font-medium" htmlFor="receiverUserId">
+              Receiver
+            </label>
+            <select
+              id="receiverUserId"
+              name="receiverUserId"
+              className="h-11 rounded-xl border border-input bg-white px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/20"
+              required
+            >
+              {members.map((member) => (
+                <option key={member.userId} value={member.userId}>
+                  {member.user.name} - position {member.payoutPosition}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium" htmlFor="amount">
+              Amount
+            </label>
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              min="1"
+              defaultValue={defaultAmount}
+              required
+            />
+          </div>
+          <Button type="submit" disabled={manualPayout.isPending}>
+            {manualPayout.isPending ? <InlineLoader label="Submitting" /> : "Confirm payout"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function getString(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? String(value) : "";
 }

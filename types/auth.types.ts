@@ -5,7 +5,6 @@ export type AuthUser = {
   name: string;
   email: string;
   phone: string;
-  role?: "MEMBER" | "ORGANIZER" | string;
 };
 
 export type RegisterRequest = {
@@ -30,6 +29,11 @@ export type AuthPayload = {
   user: AuthUser;
 };
 
+export type Profile = AuthUser & {
+  createdAt: string;
+};
+
 export type RegisterResponse = ApiMessageResponse;
 export type VerifyOtpResponse = ApiResponse<AuthPayload>;
 export type LoginResponse = ApiResponse<AuthPayload>;
+export type ProfileResponse = ApiResponse<Profile>;

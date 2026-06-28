@@ -7,6 +7,7 @@ import { getApiErrorMessage } from "@/services/api";
 
 export function GroupsList({ basePath }: { basePath: "/member/groups" | "/organizer/groups" }) {
   const groupsQuery = useGetGroups();
+  const showInviteLinks = basePath === "/organizer/groups";
 
   if (groupsQuery.isLoading) {
     return <EmptyState title="Loading groups..." />;
@@ -30,7 +31,12 @@ export function GroupsList({ basePath }: { basePath: "/member/groups" | "/organi
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {groups.map((group) => (
-        <GroupCard key={group.id} group={group} href={`${basePath}/${group.id}`} />
+        <GroupCard
+          key={group.id}
+          group={group}
+          href={`${basePath}/${group.id}`}
+          showInviteLink={showInviteLinks}
+        />
       ))}
     </div>
   );

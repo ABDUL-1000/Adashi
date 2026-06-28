@@ -9,15 +9,11 @@ export type Payment = {
   group?: { id: string; name: string };
 };
 
-export type InitializePaymentRequest = {
-  groupId?: string;
-  amount: number;
+export type VerifyPaymentRequest = {
+  groupId: string;
+  cycleId: string;
+  transactionReference: string;
 };
 
-export type InitializePaymentPayload = {
-  authorizationUrl?: string;
-  reference?: string;
-};
-
-export type InitializePaymentResponse = ApiResponse<InitializePaymentPayload>;
+export type VerifyPaymentResponse = ApiResponse<unknown>;
 export type PaymentsResponse = ApiResponse<Payment[]>;

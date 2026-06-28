@@ -10,13 +10,14 @@ export type PayoutMethod =
 export type GroupOrganizer = {
   id: string;
   name: string;
+  email?: string;
 };
 
 export type GroupMemberUser = {
   id: string;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
 };
 
 export type GroupMember = {
@@ -50,7 +51,7 @@ export type Group = {
   organizer?: GroupOrganizer;
   members?: GroupMember[];
   contributionCycles?: ContributionCycle[];
-  inviteLink?: string;
+  invites?: { code: string }[];
 };
 
 export type CreateGroupRequest = {
@@ -59,14 +60,10 @@ export type CreateGroupRequest = {
   slots: number;
   frequency: GroupFrequency;
   startDate: string;
-  payoutMethod: PayoutMethod;
-  reminderDaysBeforeDueDate: number[];
-  autoDeductionEnabled: boolean;
 };
 
 export type CreateGroupPayload = {
   group: Group;
-  inviteLink?: string;
 };
 
 export type GroupDetailsLedger = {
@@ -77,7 +74,7 @@ export type GroupDetailsLedger = {
     paidAt?: string;
     createdAt?: string;
     user?: { name: string; email?: string };
-  }>;
+  } | Record<string, unknown>>;
   payouts: Array<{
     id: string;
     amount?: string;
@@ -85,7 +82,7 @@ export type GroupDetailsLedger = {
     paidAt?: string;
     createdAt?: string;
     user?: { name: string; email?: string };
-  }>;
+  } | Record<string, unknown>>;
 };
 
 export type GroupDetails = {
@@ -94,11 +91,11 @@ export type GroupDetails = {
     members: GroupMember[];
     contributionCycles: ContributionCycle[];
   };
-  userContext?: {
+  userContext: {
     payoutPosition: number;
     joinedAt: string;
-  };
-  currentCycle?: ContributionCycle;
+  } | null;
+  currentCycle: ContributionCycle | null;
   ledger: GroupDetailsLedger;
 };
 

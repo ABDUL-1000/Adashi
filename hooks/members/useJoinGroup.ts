@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { memberService } from "@/services/member.service";
+import { inviteService } from "@/services/invite.service";
 
 export function useJoinGroup() {
   return useMutation({
-    mutationFn: memberService.joinGroup,
+    mutationFn: inviteService.joinGroup,
   });
 }

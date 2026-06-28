@@ -1,25 +1,24 @@
 import api from "./api";
 import type {
-  InitializePaymentRequest,
-  InitializePaymentResponse,
   PaymentsResponse,
+  VerifyPaymentRequest,
+  VerifyPaymentResponse,
 } from "@/types/payment.types";
 
 export const paymentService = {
-  initializePayment: async (payload: InitializePaymentRequest) => {
-    const { data } = await api.post<InitializePaymentResponse>(
-      "/payments/initialize",
+  // TODO: Add initialize payment endpoint when backend provides it.
+  initializePayment: async (_payload: unknown) => {
+    void _payload;
+    throw new Error("Initialize payment endpoint is not available yet.");
+  },
+  // TODO: Add list payments endpoint when backend provides it.
+  getPayments: async (): Promise<PaymentsResponse> => {
+    throw new Error("List payments endpoint is not available yet.");
+  },
+  verifyPayment: async (payload: VerifyPaymentRequest) => {
+    return api.post<VerifyPaymentResponse, VerifyPaymentResponse>(
+      "/payments/verify",
       payload
     );
-    return data;
-  },
-  getPayments: async () => {
-    const { data } = await api.get<PaymentsResponse>("/payments");
-    return data;
-  },
-  verifyPayment: async (reference: string) => {
-    // TODO: Confirm whether the backend expects reference in the URL or body.
-    const { data } = await api.post("/payments/verify", { reference });
-    return data;
   },
 };
