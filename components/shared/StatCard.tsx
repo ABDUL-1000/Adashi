@@ -27,7 +27,7 @@ export function StatCard({
       <CardContent className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-medium leading-5 text-muted-foreground">{title}</p>
-          <div className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-foreground">
+          <div className="mt-3 text-lg font-semibold leading-tight tracking-tight text-foreground">
             {value}
           </div>
           {caption ? (
@@ -35,8 +35,8 @@ export function StatCard({
           ) : null}
         </div>
         {Icon ? (
-          <span className={cn("grid size-11 shrink-0 place-items-center rounded-2xl", tones[tone])}>
-            <Icon className="size-5" />
+          <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", tones[tone])}>
+            <Icon className="size-4" />
           </span>
         ) : null}
       </CardContent>
