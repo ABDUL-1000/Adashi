@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ function LoginFields() {
   const searchParams = useSearchParams();
   const login = useLogin();
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const redirect = searchParams.get("redirect") || searchParams.get("next") || "/dashboard";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -49,7 +51,26 @@ function LoginFields() {
         <label className="text-sm font-medium leading-5" htmlFor="password">
           Password
         </label>
-        <Input id="password" name="password" type="password" required />
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            className="pr-11"
+            required
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            onClick={() => setShowPassword((current) => !current)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </Button>
+        </div>
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button type="submit" disabled={login.isPending} className="mt-2 w-full">
