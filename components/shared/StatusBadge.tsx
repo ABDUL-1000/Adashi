@@ -1,19 +1,24 @@
 import { Badge } from "@/components/ui/badge";
 
+const labels: Record<string, string> = {
+  PENDING: "FILLING UP",
+  UNPAID: "NOT PAID",
+};
+
 export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toUpperCase();
   const className =
     normalized === "ACTIVE" || normalized === "PAID" || normalized === "COMPLETED"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : normalized === "PENDING"
+      : normalized === "PENDING" || normalized === "UNPAID"
         ? "border-amber-200 bg-amber-50 text-amber-700"
-        : normalized === "OVERDUE" || normalized === "FAILED" || normalized === "CANCELLED"
+        : normalized === "OVERDUE" || normalized === "LATE" || normalized === "FAILED" || normalized === "CANCELLED"
           ? "border-red-200 bg-red-50 text-red-700"
           : "border-primary/20 bg-primary-soft text-primary";
 
   return (
     <Badge variant="outline" className={className}>
-      {normalized}
+      {labels[normalized] ?? normalized}
     </Badge>
   );
 }

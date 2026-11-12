@@ -25,7 +25,7 @@ export function PaymentsView() {
     <div className="grid gap-6">
       <PageHeader
         title="Payments"
-        description="Track contribution payments, statuses, and paid dates from the backend ledger."
+        description="Contributions your organisers have recorded for you. Adashi does not hold your money."
       />
       {paymentsQuery.isLoading ? <PageSkeleton /> : null}
       <Card>
@@ -46,6 +46,8 @@ export function PaymentsView() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Group</TableHead>
+                  <TableHead>Round</TableHead>
+                  <TableHead>Method</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
@@ -55,6 +57,8 @@ export function PaymentsView() {
                 {paymentsQuery.data.data.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell>{payment.group?.name ?? "Contribution"}</TableCell>
+                    <TableCell>{payment.cycleNumber ?? "-"}</TableCell>
+                    <TableCell>{methodLabel(payment.method)}</TableCell>
                     <TableCell>{formatCurrency(payment.amount)}</TableCell>
                     <TableCell><StatusBadge status={payment.status} /></TableCell>
                     <TableCell>{formatDate(payment.paidAt ?? payment.createdAt)}</TableCell>
@@ -71,7 +75,10 @@ export function PaymentsView() {
                     <StatusBadge status={payment.status} />
                   </div>
                   <p className="mt-3 text-xl font-semibold text-primary">{formatCurrency(payment.amount)}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{formatDate(payment.paidAt ?? payment.createdAt)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Round {payment.cycleNumber ?? "-"} · {methodLabel(payment.method)} ·{" "}
+                    {formatDate(payment.paidAt ?? payment.createdAt)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -81,4 +88,11 @@ export function PaymentsView() {
       </Card>
     </div>
   );
+}
+
+function methodLabel(method: string | undefined) {
+  if (method === "CASH") return "Cash";
+  if (method === "TRANSFER") return "Transfer";
+  if (method === "PAYSTACK") return "Online";
+  return "-";
 }

@@ -1,40 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, Plus, Timer, Users, Wallet, WalletCards } from "lucide-react";
+import { CheckCircle2, CircleDashed, Mail, Plus, ShoppingBag, Timer, Users, WalletCards } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { PageSkeleton } from "@/components/shared/PageSkeleton";
 import { StateCard } from "@/components/shared/StateCard";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProfile } from "@/hooks/auth/useProfile";
 import { useGetGroups } from "@/hooks/groups/useGetGroups";
-import { useGetWallet } from "@/hooks/wallet/useGetWallet";
-import { isGroupOwner } from "@/lib/groupPermissions";
+import { useMyInvitations } from "@/hooks/invitations/useMyInvitations";
+import { usePssPurchases } from "@/hooks/pss/usePss";
+import { formatKobo } from "@/lib/money";
+import { lastPayDay } from "@/lib/dates";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatDate } from "@/lib/formatDate";
+import { isGroupOwner } from "@/lib/groupPermissions";
 
 export function DashboardView() {
   const profileQuery = useProfile();
   const groupsQuery = useGetGroups();
-  const walletQuery = useGetWallet();
+  const invitationsQuery = useMyInvitations();
   const userId = profileQuery.data?.data.id;
   const groups = groupsQuery.data?.data ?? [];
+  const invitations = invitationsQuery.data?.data ?? [];
+  const purchasesQuery = usePssPurchases();
+  const purchases = (purchasesQuery.data?.data ?? []).filter((purchase) => purchase.status === "ACTIVE");
   const createdGroups = groups.filter((group) => isGroupOwner(group, userId));
-  const joinedGroups = groups.filter((group) => !isGroupOwner(group, userId));
-  const pendingGroups = groups.filter((group) => group.status === "PENDING");
   const activeGroups = groups.filter((group) => group.status === "ACTIVE");
-  const walletBalance = Number(walletQuery.data?.data.balance ?? 0);
-  const nextContributionAmount = groups
-    .map((group) => Number(group.contributionAmount))
-    .filter((amount) => !Number.isNaN(amount) && amount > 0)
-    .sort((a, b) => a - b)[0];
-  const hasLowWalletBalance = Boolean(
-    nextContributionAmount && walletBalance < nextContributionAmount
-  );
+  const pendingGroups = groups.filter((group) => group.status === "PENDING");
+  const thisRound = activeGroups.filter((group) => group.mySummary?.isMember);
+  const owed = thisRound.filter((group) => group.mySummary && !group.mySummary.hasPaid);
+  const totalOwed = owed.reduce((sum, group) => sum + Number(group.mySummary?.amountDue ?? 0), 0);
 
-  if (groupsQuery.isLoading || profileQuery.isLoading || walletQuery.isLoading) {
+  if (groupsQuery.isLoading || profileQuery.isLoading) {
     return <PageSkeleton />;
   }
 
@@ -42,39 +44,137 @@ export function DashboardView() {
     <div className="grid gap-6">
       <PageHeader
         title="Dashboard"
-        description={`Welcome back${profileQuery.data?.data.name ? `, ${profileQuery.data.data.name}` : ""}. Track the groups you created and joined from one workspace.`}
+        description={`Welcome back${profileQuery.data?.data.name ? `, ${profileQuery.data.data.name}` : ""}.`}
         action={
-          <Button asChild>
+          <Button asChild className="min-h-11">
             <Link href="/groups/create">
               <Plus className="size-4" /> Create group
             </Link>
           </Button>
         }
       />
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-3">
-        <StateCard title="Total groups" value={groups.length} icon={Users} />
-        <StateCard title="Groups I Created" value={createdGroups.length} icon={Users} />
-        <StateCard title="Groups I Joined" value={joinedGroups.length} icon={WalletCards} />
-        <StateCard title="Pending groups" value={pendingGroups.length} icon={Timer} />
-        <StateCard title="Active groups" value={activeGroups.length} icon={WalletCards} />
-        <StateCard
-          title="Wallet"
-          value={formatCurrency(walletQuery.data?.data.balance)}
-          caption="Available wallet balance"
-          icon={Wallet}
-        />
-      </div>
-      {hasLowWalletBalance ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0" />
-          <p className="text-sm leading-6">
-            Your wallet balance may be below your next contribution. Please top up before the due date.
-          </p>
-        </div>
+
+      {invitations.length ? (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="size-5 text-primary" />
+              Invitations waiting for you
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2">
+            {invitations.map((invitation) => (
+              <Link
+                key={invitation.token}
+                href={`/invitations/${invitation.token}`}
+                className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-border-soft bg-page-bg p-4 transition hover:border-primary/30 hover:bg-primary-soft"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">{invitation.group.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    From {invitation.group.organizer.name} · {formatCurrency(invitation.group.contributionAmount)}{" "}
+                    {invitation.group.frequency.toLowerCase()}
+                  </p>
+                </div>
+                <span className="text-sm font-semibold text-primary">Answer</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
       ) : null}
+
       <Card>
         <CardHeader>
-          <CardTitle>Recent groups</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <ShoppingBag className="size-5 text-primary" />
+            Pay Small Small
+          </CardTitle>
+          <CardDescription>Sell on installments and share one record with your customer.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2">
+          {purchases.map((purchase) => (
+            <Link
+              key={purchase.shareToken}
+              href={`/pss/${purchase.shareToken}`}
+              className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-border-soft bg-page-bg p-4 transition hover:border-primary/30 hover:bg-primary-soft"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">You are buying: {purchase.itemName}</p>
+                <p className="text-sm text-muted-foreground">
+                  From {purchase.shopName} · Balance {formatKobo(purchase.balance)}
+                </p>
+              </div>
+            </Link>
+          ))}
+          <Button asChild variant="outline" className="min-h-11 sm:w-fit">
+            <Link href="/pay-small-small">Open Pay Small Small</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StateCard
+          title="Due this round"
+          value={formatCurrency(totalOwed)}
+          caption={owed.length ? `${owed.length} group(s) unpaid` : "All paid"}
+          icon={WalletCards}
+        />
+        <StateCard title="Active groups" value={activeGroups.length} icon={Users} />
+        <StateCard title="Filling up" value={pendingGroups.length} icon={Timer} />
+        <StateCard title="Groups I organise" value={createdGroups.length} icon={Users} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>This round</CardTitle>
+          <CardDescription>What you owe and who collects in each active group.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {thisRound.length ? (
+            <ul className="grid gap-2">
+              {thisRound.map((group) => {
+                const summary = group.mySummary!;
+                return (
+                  <li key={group.id}>
+                    <Link
+                      href={`/groups/${group.id}`}
+                      className="flex min-h-14 items-start gap-3 rounded-2xl border border-border-soft bg-page-bg p-4 transition hover:border-primary/30 hover:bg-primary-soft"
+                    >
+                      {summary.hasPaid ? (
+                        <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                      ) : (
+                        <CircleDashed className="mt-0.5 size-5 shrink-0 text-amber-600" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-foreground">{group.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {summary.hasPaid
+                            ? `Paid for round ${summary.cycleNumber} of ${summary.totalCycles}`
+                            : `${formatCurrency(summary.amountDue)} due by ${formatDate(lastPayDay(summary.dueDate))}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {summary.isMyTurnToCollect
+                            ? "Your turn to collect this round"
+                            : `${summary.collectorName ?? "Someone"} collects this round`}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <EmptyState
+              title="No active rounds"
+              description="When a group you're in fills up, your round details show here."
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your groups</CardTitle>
         </CardHeader>
         <CardContent>
           {groups.length ? (
@@ -86,13 +186,13 @@ export function DashboardView() {
                   className="rounded-2xl border border-border-soft bg-page-bg p-4 transition hover:border-primary/30 hover:bg-primary-soft"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-foreground">{group.name}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{group.frequency}</p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{group.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatCurrency(group.contributionAmount)} {group.frequency === "WEEKLY" ? "weekly" : "monthly"}
+                      </p>
                     </div>
-                    <p className="text-sm font-semibold text-primary">
-                      {formatCurrency(group.contributionAmount)}
-                    </p>
+                    <StatusBadge status={group.status} />
                   </div>
                 </Link>
               ))}

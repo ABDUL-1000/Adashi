@@ -6,9 +6,8 @@ import type {
 } from "@/types/payout.types";
 
 export const payoutService = {
-  // TODO: Add list payouts endpoint when backend provides it.
-  getPayouts: async (): Promise<PayoutsResponse> => {
-    throw new Error("List payouts endpoint is not available yet.");
+  getPayouts: async () => {
+    return api.get<PayoutsResponse, PayoutsResponse>("/payouts");
   },
   manualPayout: async (payload: ManualPayoutRequest) => {
     return api.post<ManualPayoutResponse, ManualPayoutResponse>(

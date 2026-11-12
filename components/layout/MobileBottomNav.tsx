@@ -3,22 +3,25 @@
 import {
   CreditCard,
   LayoutDashboard,
-  PlusCircle,
+  Settings,
+  ShoppingBag,
   Users,
-  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { isNavItemActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
   { label: "Home", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Groups", icon: Users, href: "/groups" },
-  { label: "Create", icon: PlusCircle, href: "/groups/create" },
-  { label: "Pay", icon: CreditCard, href: "/payments" },
-  { label: "Wallet", icon: Wallet, href: "/wallet" },
+  { label: "Small Small", icon: ShoppingBag, href: "/pay-small-small" },
+  { label: "Payments", icon: CreditCard, href: "/payments" },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ];
+
+const hrefs = items.map((item) => item.href);
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -29,12 +32,13 @@ export function MobileBottomNav() {
         {items.map((item) => {
           const href = item.href;
           const Icon = item.icon;
-          const active = pathname === href || pathname.startsWith(`${href}/`);
+          const active = isNavItemActive(pathname, href, hrefs);
 
           return (
             <Link
               key={item.label}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium text-muted-foreground transition",
                 active && "bg-primary-soft text-primary"
