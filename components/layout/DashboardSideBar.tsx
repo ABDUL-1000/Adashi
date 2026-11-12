@@ -6,8 +6,8 @@ import {
   LogOut,
   PlusCircle,
   Settings,
+  ShoppingBag,
   Users,
-  Wallet,
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
@@ -16,17 +16,20 @@ import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/shared/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useLogout } from "@/hooks/auth/useLogout";
+import { isNavItemActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Groups", icon: Users, href: "/groups" },
   { label: "Create Group", icon: PlusCircle, href: "/groups/create" },
+  { label: "Pay Small Small", icon: ShoppingBag, href: "/pay-small-small" },
   { label: "Payments", icon: CreditCard, href: "/payments" },
   { label: "Payouts", icon: WalletCards, href: "/payouts" },
-  { label: "Wallet", icon: Wallet, href: "/wallet" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
+
+const hrefs = navItems.map((item) => item.href);
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -39,7 +42,7 @@ export function DashboardSidebar() {
         {navItems.map((item) => {
           const href = item.href;
           const Icon = item.icon;
-          const active = pathname === href || pathname.startsWith(`${href}/`);
+          const active = isNavItemActive(pathname, href, hrefs);
 
           return (
             <Link
@@ -59,7 +62,7 @@ export function DashboardSidebar() {
       <div className="mt-auto rounded-2xl bg-primary-soft p-4">
         <p className="text-sm font-medium text-foreground">Need a new cycle?</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Create a group and let Adashi handle reminders, wallets, and payout records.
+          Create a group and let Adashi track contributions, reminders and payouts. Adashi never holds your money.
         </p>
       </div>
       <Button variant="outline" className="mt-4 justify-start" onClick={logout}>

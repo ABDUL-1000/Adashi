@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 
+import { safeRedirect } from "@/lib/safeRedirect";
 import { Button } from "@/components/ui/button";
 import {
   InputOTP,
@@ -21,7 +22,7 @@ function VerifyOtpFields() {
   const [error, setError] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const email = searchParams.get("email") ?? "";
-  const redirect = searchParams.get("redirect") || "/dashboard";
+  const redirect = safeRedirect(searchParams.get("redirect"));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

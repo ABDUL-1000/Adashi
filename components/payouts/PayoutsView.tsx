@@ -43,6 +43,8 @@ export function PayoutsView() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Group</TableHead>
+                  <TableHead>Round</TableHead>
+                  <TableHead>Collected by</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
@@ -52,6 +54,8 @@ export function PayoutsView() {
                 {payoutsQuery.data.data.map((payout) => (
                   <TableRow key={payout.id}>
                     <TableCell>{payout.group?.name ?? "Payout"}</TableCell>
+                    <TableCell>{payout.cycleNumber ?? "-"}</TableCell>
+                    <TableCell>{payout.isMine ? "You" : payout.receiverName}</TableCell>
                     <TableCell>{formatCurrency(payout.amount)}</TableCell>
                     <TableCell><StatusBadge status={payout.status} /></TableCell>
                     <TableCell>{formatDate(payout.paidAt ?? payout.createdAt)}</TableCell>
@@ -68,7 +72,10 @@ export function PayoutsView() {
                     <StatusBadge status={payout.status} />
                   </div>
                   <p className="mt-3 text-xl font-semibold text-primary">{formatCurrency(payout.amount)}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{formatDate(payout.paidAt ?? payout.createdAt)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Round {payout.cycleNumber ?? "-"} · {payout.isMine ? "You" : payout.receiverName} ·{" "}
+                    {formatDate(payout.paidAt ?? payout.createdAt)}
+                  </p>
                 </div>
               ))}
             </div>

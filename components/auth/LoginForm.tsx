@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+import { safeRedirect } from "@/lib/safeRedirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InlineLoader } from "@/components/shared/InlineLoader";
@@ -18,7 +19,7 @@ function LoginFields() {
   const login = useLogin();
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const redirect = searchParams.get("redirect") || searchParams.get("next") || "/dashboard";
+  const redirect = safeRedirect(searchParams.get("redirect") || searchParams.get("next"));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

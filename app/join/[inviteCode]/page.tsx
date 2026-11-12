@@ -74,7 +74,7 @@ export default function JoinGroupPage() {
           <Card className="w-full max-w-xl">
             <CardHeader>
               <CardTitle>Join contribution group</CardTitle>
-              <CardDescription>Review the invite details before choosing your payout position.</CardDescription>
+              <CardDescription>Check the details below. You get the next free payout position; the organiser can change the order before the group starts.</CardDescription>
             </CardHeader>
             <CardContent>
               {inviteQuery.isLoading ? <EmptyState title="Validating invite..." /> : null}
@@ -109,7 +109,7 @@ export default function JoinGroupPage() {
                   ) : (
                     <div className="grid gap-3 rounded-2xl border border-primary/20 bg-primary-soft p-4">
                       <p className="text-sm text-muted-foreground">
-                        Login or create an account to choose your payout position and join this group.
+                        Log in or create an account to join this group.
                       </p>
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <Button asChild>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+import { safeRedirect } from "@/lib/safeRedirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InlineLoader } from "@/components/shared/InlineLoader";
@@ -19,21 +20,23 @@ function RegisterFields() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const redirect = searchParams.get("redirect") || "/dashboard";
+  const redirect = safeRedirect(searchParams.get("redirect"));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setMessage(null);
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email"));
+    const email = String(form.get("email")).trim();
+    const phone = String(form.get("phone") || "").replace(/\s+/g, "");
 
     try {
       const response = await register.mutateAsync({
-        name: String(form.get("name")),
+        name: String(form.get("name")).trim(),
         email,
-        phone: String(form.get("phone")),
+        phone: phone || undefined,
         password: String(form.get("password")),
+        acceptPrivacy: form.get("acceptPrivacy") === "on",
       });
       setMessage(response.message);
       notify.success(response.message || "Account created. Check your OTP.");
@@ -63,9 +66,18 @@ function RegisterFields() {
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium leading-5" htmlFor="phone">
-          Phone
+          Phone (optional)
         </label>
-        <Input id="phone" name="phone" required />
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="08012345678"
+          pattern="\+?[0-9 ]{10,18}"
+        />
+        <p className="text-xs text-muted-foreground">Only your group organiser can see it.</p>
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium leading-5" htmlFor="password">
@@ -77,6 +89,8 @@ function RegisterFields() {
             name="password"
             type={showPassword ? "text" : "password"}
             className="pr-11"
+            autoComplete="new-password"
+            minLength={8}
             required
           />
           <Button
@@ -92,6 +106,17 @@ function RegisterFields() {
           </Button>
         </div>
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">At least 8 characters.</p>
+      <label className="flex items-start gap-3 text-sm leading-5 text-muted-foreground">
+        <input type="checkbox" name="acceptPrivacy" required className="mt-0.5 size-4 shrink-0 accent-primary" />
+        <span>
+          I have read the{" "}
+          <Link href="/privacy" target="_blank" className="font-medium text-primary underline-offset-2 hover:underline">
+            privacy notice
+          </Link>{" "}
+          and agree that Adashi stores my name, email and phone number to run my savings groups.
+        </span>
+      </label>
       {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button type="submit" disabled={register.isPending} className="mt-2 w-full">

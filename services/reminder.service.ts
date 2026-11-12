@@ -1,11 +1,6 @@
-import api from "./api";
-import type { TriggerReminderResponse } from "@/types/reminder.types";
+import { groupService } from "./group.service";
 
 export const reminderService = {
-  triggerReminder: async () => {
-    // TODO: Add request body when backend documents reminder trigger payload.
-    return api.post<TriggerReminderResponse, TriggerReminderResponse>(
-      "/reminder/trigger"
-    );
-  },
+  // Organisers remind the unpaid members of one group (the platform-wide job is admin-only).
+  triggerReminder: async (groupId: string) => groupService.remindUnpaid(groupId),
 };

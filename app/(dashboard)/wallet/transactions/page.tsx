@@ -1,5 +1,6 @@
-import { WalletView } from "@/components/wallet/WalletView";
+import { NoWalletNotice } from "@/components/wallet/NoWalletNotice";
 
-export default function WalletTransactionsPage() {
-  return <WalletView />;
+// Wallet is disabled for the pilot: Adashi does not hold or move money.
+export default function WalletPage() {
+  return <NoWalletNotice />;
 }
