@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, LogOut, Search } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { BrandLogo } from "@/components/shared/BrandLogo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,7 @@ export function DashboardHeader() {
           <Button variant="outline" size="icon" aria-label="Search">
             <Search className="size-4" />
           </Button>
-          <Button variant="outline" size="icon" aria-label="Notifications">
-            <Bell className="size-4" />
-          </Button>
+          <NotificationBell />
           <div className="hidden items-center gap-3 rounded-2xl border border-border-soft bg-white px-3 py-2 sm:flex">
             <Avatar className="size-8">
               <AvatarFallback className="bg-primary-soft text-xs font-medium text-primary">
