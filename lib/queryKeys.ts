@@ -6,6 +6,7 @@ export const queryKeys = {
   payments: ["payments"] as const,
   payouts: ["payouts"] as const,
   myInvitations: ["member-invitations", "mine"] as const,
+  notifications: ["notifications"] as const,
   invitation: (token: string) => ["member-invitations", token] as const,
   wallet: ["wallet"] as const,
   walletTransactions: (page: number, limit: number) =>

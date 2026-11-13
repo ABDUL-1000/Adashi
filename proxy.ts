@@ -10,6 +10,7 @@ const protectedPrefixes = [
   "/payouts",
   "/wallet",
   "/pay-small-small",
+  "/notifications",
 ];
 const authRoutes = ["/login", "/register", "/verify-otp", "/forgot-password"];
 
